@@ -80,7 +80,7 @@ in every single age group without exception, ruling out coincidence and confirmi
 a structural gender penalty in the algorithm.
 
 ### Bias Summary Table
-| Finding | Metric | Value | Threshold | Status |
+| Finding | Metric | Value | Threshold | 
 |---|---|---|---|---|
 | Gender DI | DI Ratio | 0.7667 | 0.8 |
 | Age DI | DI Ratio | 0.6369 | 0.8 | 
