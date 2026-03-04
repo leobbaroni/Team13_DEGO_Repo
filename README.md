@@ -80,12 +80,12 @@ in every single age group without exception, ruling out coincidence and confirmi
 a structural gender penalty in the algorithm.
 
 ### Bias Summary Table
-| Finding | Metric | Value | Threshold | 
+| Finding | Metric | Value | Threshold | Status |
 |---|---|---|---|---|
-| Gender DI | DI Ratio | 0.7667 | 0.8 |
-| Age DI | DI Ratio | 0.6369 | 0.8 | 
-| ZIP Proxy | p-value | 0.0048 | 0.05 | 
-| Gender x Age | DI Ratio | 0.4162 | 0.8 | 
+| Gender DI | DI Ratio | 0.7667 | >= 0.8 | FAIL |
+| Age DI | DI Ratio | 0.6369 | >= 0.8 | FAIL |
+| ZIP Proxy | p-value | 0.0048 | > 0.05 | SIGNIFICANT |
+| Gender x Age | DI Ratio | 0.4162 | >= 0.8 | SEVERE |
 
 ---
 
