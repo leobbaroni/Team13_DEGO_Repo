@@ -964,14 +964,14 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 ### Key Performance Indicators
 
 Data Quality:
-- Percentage of records with valid processing timestamps: target 100%
-- Percentage of records with documented consent/basis: target 100%
-- Percentage of special category data suppressed: target 100%
+- % of records with valid processing timestamps: target 100%
+- % of records with documented consent/basis: target 100%
+- % of special category data suppressed: target 100%
 
 Privacy Protection:
-- Percentage of personal data pseudonymised: target 100%
-- Percentage of IP addresses masked: target 100%
-- Percentage of plaintext sensitive fields: target 0%
+- % of personal data pseudonymised: target 100%
+- % of IP addresses masked: target 100%
+- % of plaintext sensitive fields: target 0%
 
 Subject Rights:
 - Average response time to access requests: target under 14 days
