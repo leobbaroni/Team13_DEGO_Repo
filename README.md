@@ -1,99 +1,179 @@
-# project-team13
-DEGO 2606 Group Project – Credit Application Governance Analysis  
-Nova School of Business and Economics | MSc Business Analytics
+# NovaCred Credit Application Governance Analysis
+
+![Project Status: Active](https://img.shields.io/badge/Project_Status-Active-success)
+![Course: DEGO_2606](https://img.shields.io/badge/Course-DEGO_2606-blue)
+
+**Nova School of Business and Economics | MSc Business Analytics**
+
+---
+
+## Table of Contents
+
+- [Repository Structure](#repository-structure)
+- [Team Members](#team-members)
+- [Executive Summary](#executive-summary)
+- [Data Quality Assessment](#data-quality-assessment)
+- [Bias Analysis Findings](#bias-analysis-findings)
+- [Privacy and Governance Assessment](#privacy-and-governance-assessment)
+- [Governance Recommendations](#governance-recommendations)
+
+---
+
+## Repository Structure
+
+```text
+project-team13/
+├── README.md                           # Project overview & findings summary
+├── data/                               # Data files
+│   ├── raw_credit_applications.json    # Original dataset
+│   └── clean_credit_applications.csv   # Post-quality remediation dataset
+├── notebooks/                          # Analysis notebooks
+│   ├── 01-data-quality.ipynb           # DQ audit and remediation
+│   ├── 02-bias-analysis.ipynb          # Bias detection (Fairlearn)
+│   └── 03-privacy-demo.ipynb           # Privacy mapping and auditing
+├── src/                                # Reusable code
+│   └── fairness_utils.ipynb            # Helper functions for bias analysis
+└── reports/                            # Generated visuals and figures
+```
 
 ---
 
 ## Team Members
-| Name | Role |
-|---|---|
-| Leonardo Baroni | Data Engineer |
-| Arslan Mubarak | Data Scientist |
-| Paul | Governance Officer |
-| Caro | Product Lead |
+
+| Name            | Role               |
+| --------------- | ------------------ |
+| Leonardo Baroni | Data Engineer      |
+| Arslan Mubarak  | Data Scientist     |
+| Paul            | Governance Officer |
+| Caro            | Product Lead       |
 
 ---
 
 ## Executive Summary
 
-This project audits the credit application dataset of **NovaCred**, a fictional 
-fintech company under regulatory scrutiny for potential discrimination in lending. 
-Acting as a Data Governance Task Force, our team analysed 500 credit applications 
-for data quality issues, algorithmic bias, and GDPR/AI Act compliance gaps.
+![Executive Dashboard](notebooks/executive_dashboard.png)
 
-**Key conclusion:** NovaCred's credit scoring system exhibits pervasive, 
-multi-dimensional bias across all dimensions tested. The system must not be 
-deployed without fundamental algorithmic review and independent auditing.
+> This project audits the credit application dataset of **NovaCred**, a fictional
+> fintech company under regulatory scrutiny for potential discrimination in lending.
+> Acting as a Data Governance Task Force, our team analysed 500 credit applications
+> for data quality issues, algorithmic bias, and GDPR/AI Act compliance gaps.
+>
+> **Key conclusion:** NovaCred's credit scoring system exhibits pervasive,
+> multi-dimensional bias across all dimensions tested. The system must not be
+> deployed without fundamental algorithmic review and independent auditing.
 
 ---
 
-## Data Quality Findings
+## Data Quality Assessment
 
-*(To be completed by Data Engineer — summary of issues found in 01-data-quality.ipynb)*
+Full analysis provided in `notebooks/01-data-quality.ipynb`.
+
+### Completeness & Consistency
+
+- Standardized Date of Birth formats across 161 records to ISO 8601.
+- Mapped heterogeneous gender values (M/F/Male/Female/empty) to standard Male/Female/Unknown.
+- Fixed mismatched JSON keys (`annual_salary` to `annual_income`) and coerced income columns to numeric format.
+- Identified 896 missing critical fields (IP Address, SSN, Processing Timestamp, Loan Purpose) and set them to "unknown".
+
+### Validity & Accuracy
+
+- Handled negative values for `credit_history_months` (2) and `savings_balance` (1) by replacing them with median values.
+- Remediated out-of-bounds metrics, such as `debt_to_income` exceeding 1.0.
+- Detected and dropped 2 duplicate records out of the initial 502 total, leaving a clean dataset of 500 applications.
+
+### Remediation Strategy
+
+1. **Detect**: Track formatting, null rates, and logical validation constraints.
+2. **Quantify**: Log counts or percentages of errors.
+3. **Remediate**: Replace hard invalid cases with `NaN`, followed by median imputation for numerical data or "unknown" tagging for strings.
+
+### Summary Table
+
+| Dimension    | Issue Found                                      | Records Affected | Fix Strategy                             |
+| ------------ | ------------------------------------------------ | :--------------: | ---------------------------------------- |
+| Accuracy     | Duplicate IDs                                    |      4 -> 2      | Dropped duplicates using triage notes    |
+| Consistency  | Gender coded as M/F/Male/Female/empty            |       113        | Mapped to Male/Female/Unknown            |
+| Consistency  | Date of birth in 4 different formats             |       161        | Formatted to ISO 8601; derived age       |
+| Validity     | Negative values / Invalid bounds (DTI > 1.0)     |        5         | Set to NaN -> applied median imputation  |
+| Completeness | Missing PII & metrics (IP, SSN, Loan Purpose)    |    896 fields    | Nulls imputed with standard "unknown"    |
+| Governance   | PII columns: Name, Email, SSN, IP, Date of Birth |       500        | Tagged for downstream Privacy processing |
 
 ---
 
 ## Bias Analysis Findings
 
-Full analysis: notebooks/02-bias-analysis.ipynb
+Full analysis: `notebooks/02-bias-analysis.ipynb`
 
-### Finding 1 — Gender Disparate Impact
-| Metric | Value |
-|---|---|
-| Female Approval Rate | 50.6% |
-| Male Approval Rate | 66.0% |
-| DI Ratio | 0.7667 |
-| Four-Fifths Threshold | 0.8 |
-| Adverse Impact? | YES |
+### Finding 1 - Gender Disparate Impact
 
-The DI ratio of 0.7667 falls below the recognised four-fifths rule threshold, 
-indicating female applicants face statistically significant disadvantage. Confirmed 
+![Gender Approval Rate](reports/gender_approval_rate.png)
+
+| Metric                | Value  |
+| --------------------- | ------ |
+| Female Approval Rate  | 50.6%  |
+| Male Approval Rate    | 66.0%  |
+| DI Ratio              | 0.7667 |
+| Four-Fifths Threshold | 0.8    |
+| Adverse Impact?       | YES    |
+
+The DI ratio of 0.7667 falls below the recognised four-fifths rule threshold,
+indicating female applicants face statistically significant disadvantage. Confirmed
 independently by Fairlearn (DPR = 0.7667, DPD = 0.1539).
 
-### Finding 2 — Age-Based Disparate Impact
-| Age Group | Approval Rate |
-|---|---|
-| 18-30 | 43.2% |
-| 31-40 | 61.0% |
-| 41-50 | 67.9% |
-| 51-65 | 58.0% |
+### Finding 2 - Age-Based Disparate Impact
 
-Age DI Ratio: A value of 0.6369 shows it is more severe than gender bias. Young applicants (18-30) 
+![Age Approval Rate](reports/age_approval_rate.png)
+
+| Age Group | Approval Rate |
+| --------- | ------------- |
+| 18-30     | 43.2%         |
+| 31-40     | 61.0%         |
+| 41-50     | 67.9%         |
+| 51-65     | 58.0%         |
+
+Age DI Ratio: A value of 0.6369 shows it is more severe than gender bias. Young applicants (18-30)
 are systematically penalised. Fairlearn DPD = 0.2464 confirms significant disparity.
 
-### Finding 3 — ZIP Code Proxy Discrimination
-ZIP code shows a statistically significant correlation with loan outcomes 
-(r = -0.1259, p = 0.0048). ZIP codes with 100% female applicants have staggeringly low approval 
-rates while ZIP codes with 100% male applicants consistently achieve 100% approval. 
-ZIP code acts as a direct proxy for gender, meaning removing gender from the model 
+### Finding 3 - ZIP Code Proxy Discrimination
+
+![ZIP Proxy Analysis](reports/zip_proxy_analysis.png)
+
+ZIP code shows a statistically significant correlation with loan outcomes
+(r = -0.1259, p = 0.0048). ZIP codes with 100% female applicants have staggeringly low approval
+rates while ZIP codes with 100% male applicants consistently achieve 100% approval.
+ZIP code acts as a direct proxy for gender, meaning removing gender from the model
 would not eliminate discriminatory outcomes.
 
-### Finding 4 — Gender x Age Interaction Effects
-| Group | Approval Rate |
-|---|---|
-| Female 18-30 | 31.7% |
-| Male 41-50 | 76.3% |
-| Interaction DI Ratio | 0.4162 |
+### Finding 4 - Gender x Age Interaction Effects
 
-Young female applicants face compounded discrimination. Males outperform females 
-in every single age group without exception, ruling out coincidence and confirming 
+![Gender x Age Interaction](reports/gender_age_interaction.png)
+
+| Group                | Approval Rate |
+| -------------------- | ------------- |
+| Female 18-30         | 31.7%         |
+| Male 41-50           | 76.3%         |
+| Interaction DI Ratio | 0.4162        |
+
+Young female applicants face compounded discrimination. Males outperform females
+in every single age group without exception, ruling out coincidence and confirming
 a structural gender penalty in the algorithm.
 
 ### Bias Summary Table
-| Finding | Metric | Value | Threshold | Status |
-|---|---|---|---|---|
-| Gender DI | DI Ratio | 0.7667 | >= 0.8 | FAIL |
-| Age DI | DI Ratio | 0.6369 | >= 0.8 | FAIL |
-| ZIP Proxy | p-value | 0.0048 | > 0.05 | SIGNIFICANT |
-| Gender x Age | DI Ratio | 0.4162 | >= 0.8 | SEVERE |
+
+| Finding      | Metric   | Value  | Threshold | Status      |
+| ------------ | -------- | ------ | --------- | ----------- |
+| Gender DI    | DI Ratio | 0.7667 | >= 0.8    | FAIL        |
+| Age DI       | DI Ratio | 0.6369 | >= 0.8    | FAIL        |
+| ZIP Proxy    | p-value  | 0.0048 | > 0.05    | SIGNIFICANT |
+| Gender x Age | DI Ratio | 0.4162 | >= 0.8    | SEVERE      |
 
 ---
 
 ## Privacy and Governance Assessment
 
-# Privacy and Governance Assessment
+### Executive Summary
 
-## Executive Summary
+![GDPR Gap Donut](reports/gdpr_gap_donut.png)
 
 This assessment evaluates NovaCred's current state of readiness to handle personal data in compliance with GDPR. It focuses on measuring existing capabilities, identifying where controls are absent or inadequate, and quantifying the organization's exposure to regulatory and operational risk. This is a diagnostic document establishing the baseline against which progress will be measured.
 
@@ -128,16 +208,19 @@ Assessment methodology applied GDPR requirements as the authoritative standard, 
 The dataset contains personal data across ten distinct categories:
 
 **Direct Identifiers (500 records each):**
+
 - Social Security Number: 500 records, plaintext storage
 - Full Legal Name: 500 records, plaintext storage
 - Email Address: 493 records, plaintext storage
 
 **Quasi-Identifiers (99%+ coverage):**
+
 - Date of Birth: 470 records (94%)
 - IP Address: 500 records (100%)
 - ZIP Code: 499 records (99.8%)
 
 **Financial Data (100% coverage):**
+
 - Annual Income: 500 records
 - Credit History Months: 500 records
 - Debt-to-Income Ratio: 500 records
@@ -145,16 +228,19 @@ The dataset contains personal data across ten distinct categories:
 - Loan Amount Requested: 500 records
 
 **Sensitive Spending Categories:**
+
 - Healthcare Expenses: 68 records (13.6%)
 - Gambling Expenses: 7 records (1.4%)
 - Adult Entertainment Expenses: 5 records (1.0%)
 
 **Protected Characteristics:**
+
 - Gender: 500 records (100%)
 
 ### Data Retention Status
 
 Current retention state:
+
 - Records lacking timestamps: 438 of 500 (87.6%)
 - Records with documented retention basis: 0
 - Automated deletion processes: None
@@ -164,6 +250,7 @@ Current retention state:
 ### Data Access and Distribution
 
 Current accessibility:
+
 - Access to plaintext SSN: Data engineering, data science, analytics teams (estimated 15-20 personnel)
 - Access logging: Not implemented
 - Role-based access control: Not enforced
@@ -176,6 +263,7 @@ Current accessibility:
 ### Current Processing Justification
 
 Legal basis documentation review found:
+
 - Written statement of lawful basis: None
 - Consent from data subjects: None documented
 - Processing agreements: Not confirmed with any vendors
@@ -184,14 +272,14 @@ Legal basis documentation review found:
 
 ### Basis Assessment Against Article 6
 
-| Potential Basis | Applicable to Credit Scoring | Evidence of Implementation |
-|-----------------|------------------------------|---------------------------|
-| Consent (6(1)(a)) | Unclear | No consent mechanism exists |
-| Contract (6(1)(b)) | Yes, if applicant initiates application | No documentation |
-| Legal Obligation (6(1)(c)) | Possible under financial regulation | Not documented |
-| Vital Interests (6(1)(d)) | No | Not applicable |
-| Public Task (6(1)(e)) | No | Not applicable |
-| Legitimate Interests (6(1)(f)) | Possible with balancing test | Not documented |
+| Potential Basis                | Applicable to Credit Scoring            | Evidence of Implementation  |
+| ------------------------------ | --------------------------------------- | --------------------------- |
+| Consent (6(1)(a))              | Unclear                                 | No consent mechanism exists |
+| Contract (6(1)(b))             | Yes, if applicant initiates application | No documentation            |
+| Legal Obligation (6(1)(c))     | Possible under financial regulation     | Not documented              |
+| Vital Interests (6(1)(d))      | No                                      | Not applicable              |
+| Public Task (6(1)(e))          | No                                      | Not applicable              |
+| Legitimate Interests (6(1)(f)) | Possible with balancing test            | Not documented              |
 
 **Finding:** No lawful basis has been formally identified, evaluated, or documented. Processing occurs without documented justification.
 
@@ -202,6 +290,7 @@ Legal basis documentation review found:
 ### Special Category Data Identified
 
 **Healthcare Spending (68 records):**
+
 - Constitutes health data under Article 9(1)(h)
 - Reveals medical conditions, medication use, hospital visits
 - Processing prohibited under Article 9 without explicit legal basis
@@ -209,16 +298,19 @@ Legal basis documentation review found:
 - Assessment: Unlawful processing
 
 **Gambling Spending (7 records):**
+
 - Infers addiction and health status
 - No lawful basis under Article 9(2)
 - Assessment: Unlawful processing
 
 **Adult Entertainment Spending (5 records):**
+
 - Infers sexual behaviour under Article 9(1)(a)
 - No lawful basis under Article 9(2)
 - Assessment: Unlawful processing
 
 **Gender (500 records):**
+
 - Protected characteristic under Article 9(1)(a)
 - Used in credit scoring model
 - Creates discrimination risk (Disparate Impact identified in notebook 02, DI < 0.8)
@@ -228,6 +320,7 @@ Legal basis documentation review found:
 ### Legal Basis Requirement
 
 Article 9(2) provides ten grounds for lawful special category processing:
+
 1. Explicit consent - Not obtained
 2. Employment law - Not applicable
 3. Vital interests - Not applicable
@@ -248,6 +341,7 @@ Article 9(2) provides ten grounds for lawful special category processing:
 ### Current State of Data Protection
 
 **Encryption:**
+
 - Encryption at rest: Not implemented
 - Encryption in transit: Verification not performed
 - Key management: No key management system identified
@@ -255,6 +349,7 @@ Article 9(2) provides ten grounds for lawful special category processing:
 - Assessment: Absent
 
 **Pseudonymisation:**
+
 - Irreversible pseudonymisation: Not implemented
 - Reversible pseudonymisation: Not implemented
 - Salted hashing: Not implemented
@@ -262,6 +357,7 @@ Article 9(2) provides ten grounds for lawful special category processing:
 - Assessment: Absent
 
 **Access Control:**
+
 - Role-based access control: Not enforced
 - Principle of least privilege: Not documented
 - Access logging: Not implemented
@@ -269,6 +365,7 @@ Article 9(2) provides ten grounds for lawful special category processing:
 - Assessment: Absent
 
 **Data Quality:**
+
 - Timestamp consistency: 438 of 500 records (87.6%) lack valid processing timestamps
 - Data accuracy controls: Not documented
 - Completeness validation: Not documented
@@ -276,15 +373,15 @@ Article 9(2) provides ten grounds for lawful special category processing:
 
 ### Security Controls Review
 
-| Control | GDPR Requirement | Current Implementation | Assessment |
-|---------|-----------------|------------------------|------------|
-| Encryption | Article 32(1)(a) | Not implemented | Absent |
-| Pseudonymisation | Article 32(1)(a) | Not implemented | Absent |
-| Access controls | Article 32(1)(b) | Not documented | Absent |
-| Availability/resilience | Article 32(1)(b) | Not evaluated | Unknown |
-| Regular testing | Article 32(1)(d) | Not performed | Absent |
-| Incident response | Article 33-34 | Not documented | Absent |
-| Vendor security review | Article 28 | Not performed | Absent |
+| Control                 | GDPR Requirement | Current Implementation | Assessment |
+| ----------------------- | ---------------- | ---------------------- | ---------- |
+| Encryption              | Article 32(1)(a) | Not implemented        | Absent     |
+| Pseudonymisation        | Article 32(1)(a) | Not implemented        | Absent     |
+| Access controls         | Article 32(1)(b) | Not documented         | Absent     |
+| Availability/resilience | Article 32(1)(b) | Not evaluated          | Unknown    |
+| Regular testing         | Article 32(1)(d) | Not performed          | Absent     |
+| Incident response       | Article 33-34    | Not documented         | Absent     |
+| Vendor security review  | Article 28       | Not performed          | Absent     |
 
 **Finding:** No documented security controls exist to protect personal data.
 
@@ -295,6 +392,7 @@ Article 9(2) provides ten grounds for lawful special category processing:
 ### Right of Access (Article 15)
 
 Current capability: Unknown
+
 - Documented process for access requests: No
 - Data export capability: No
 - Response timeline tracking: No
@@ -303,6 +401,7 @@ Current capability: Unknown
 ### Right to Erasure (Article 17)
 
 Current capability: None
+
 - Infrastructure for selective data deletion: No
 - Automated erasure capability: No
 - Contact mechanism for erasure requests: No
@@ -312,6 +411,7 @@ Current capability: None
 ### Right to Rectification (Article 16)
 
 Current capability: Unknown
+
 - Documented process: No
 - Data correction mechanism: No
 - Notification of corrections: No
@@ -319,6 +419,7 @@ Current capability: Unknown
 ### Right to Restrict Processing (Article 18)
 
 Current capability: None
+
 - Ability to restrict future processing: No
 - Documentation of restrictions: No
 - Estimated capability: 0%
@@ -326,6 +427,7 @@ Current capability: None
 ### Right to Portability (Article 20)
 
 Current capability: None
+
 - Machine-readable export format: No
 - Structured data provision: No
 - Estimated capability: 0%
@@ -333,6 +435,7 @@ Current capability: None
 ### Right to Object (Article 21)
 
 Current capability: Unknown
+
 - Documented objection process: No
 - Automated decision opt-out: No
 - Estimated capability: 0%
@@ -340,6 +443,7 @@ Current capability: Unknown
 ### Rights Related to Automated Decision-Making (Article 22)
 
 Current capability: None
+
 - Notification of automated decision-making: No
 - Right to explanation: Not implemented
 - Right to human review: No process
@@ -355,6 +459,7 @@ Current capability: None
 ### Current Decision-Making Process
 
 Credit scoring system:
+
 - Model type: Proprietary risk algorithm
 - Decision type: Fully automated (no human review)
 - Rejection decisions: 169 of 500 applicants (33.8%)
@@ -363,6 +468,7 @@ Credit scoring system:
 ### Article 22 Compliance Evaluation
 
 **Right to Explanation:**
+
 - Model logic documented for applicants: No
 - Feature importance communicated: No
 - Decision factors identified: No
@@ -370,6 +476,7 @@ Credit scoring system:
 - Current notification: "algorithm_risk_score" (numeric value only)
 
 **Right to Human Review:**
+
 - Appeal process documented: No
 - Human review available: No
 - Review decision criteria: Not defined
@@ -377,12 +484,14 @@ Credit scoring system:
 - Current process: None
 
 **Right to Contest:**
+
 - Mechanism for contestation: None
 - Contact point for disputes: Not documented
 - Response timeline: Not defined
 - Escalation path: Unknown
 
 **Data Subject Notification:**
+
 - Informed that automated decision-making exists: No
 - Informed of significance of decision: No
 - Informed of envisaged consequences: No
@@ -394,9 +503,12 @@ Credit scoring system:
 
 ## Part 7: Organizational Governance Assessment
 
+![Governance Maturity](reports/governance_maturity.png)
+
 ### Governance Structure
 
 Current state:
+
 - Data Protection Officer designated: Not confirmed
 - Data Governance Committee: Does not exist
 - Privacy function: Not formally established
@@ -406,6 +518,7 @@ Current state:
 ### Policy Documentation
 
 Current state:
+
 - Comprehensive privacy policy: None
 - Data handling standard: None
 - Retention policy: None
@@ -417,6 +530,7 @@ Current state:
 ### Staff Training and Awareness
 
 Current state:
+
 - GDPR training completion rate: Unknown
 - Privacy awareness program: Not established
 - Data handling training: Not conducted
@@ -426,6 +540,7 @@ Current state:
 ### Vendor Management
 
 Current state:
+
 - List of data processors: Unknown
 - Data Processing Agreements executed: Unknown
 - Processor security assessments: Not conducted
@@ -436,31 +551,38 @@ Current state:
 
 ## Part 8: Regulatory Risk Assessment
 
+![Privacy Risk Assessment](reports/privacy_risk_assessment.png)
+
 ### Violation Categories Identified
 
 **Category 1: Violation of Processing Principles**
+
 - Lawfulness requirement (Article 6): Processing without documented basis
 - Fairness requirement (Article 5(1)(a)): No transparency measures
 - Accuracy requirement (Article 5(1)(d)): No data quality controls
 - Storage limitation (Article 5(1)(e)): Indefinite retention
 
 **Category 2: Violation of Special Category Protections**
+
 - Article 9 violations: Processing healthcare, gambling, entertainment spending without basis
 - Article 9 violations: Processing gender in discriminatory manner (DI < 0.8)
 
 **Category 3: Violation of Data Protection Rights**
+
 - Article 15 (access): No mechanism to respond
 - Article 17 (erasure): No infrastructure
 - Article 22 (automated decisions): No safeguards or explanations
 - Article 13 (transparency): No privacy notice
 
 **Category 4: Violation of Technical Requirements**
+
 - Article 25 (privacy by design): No design controls
 - Article 32 (security): No encryption, no access controls, no pseudonymisation
 
 ### Enforcement Likelihood
 
 **High Likelihood Scenarios:**
+
 - Data breach affecting any of the 500 applicants: Supervisory authority investigation probable
 - Data subject complaint related to rejection decision or unauthorized processing: Regulatory response expected
 - Audit or inspection by competent authority: Violations would be identified immediately
@@ -468,6 +590,7 @@ Current state:
 **Penalty Exposure:**
 
 Under Article 83 GDPR:
+
 - Tier 1 violations (up to EUR 10,000,000 or 2% global turnover): Processing without basis, failure to implement security, failure to handle data subject rights
 - Tier 2 violations (up to EUR 20,000,000 or 4% global turnover): Special category processing without basis, automated decisions without safeguards
 
@@ -480,6 +603,7 @@ Under Article 83 GDPR:
 ### Completeness
 
 Field coverage analysis:
+
 - 100% complete fields: SSN, Full Name, IP Address, Gender, Financial data (8 fields)
 - 94-99% complete fields: Email (98.6%), DOB (94%), ZIP Code (99.8%)
 - Low coverage fields: Healthcare (13.6%), Gambling (1.4%), Adult Entertainment (1%)
@@ -507,11 +631,14 @@ Cross-system consistency: Unknown (integration with other systems not documented
 
 ## Part 10: Comparative Risk Analysis
 
+![Privacy Risk Heatmap](reports/privacy_risk_heatmap.png)
+
 ### Dataset Sensitivity Profile
 
 Compared to industry baselines:
 
 Healthcare and financial services organizations typically:
+
 - Encrypt 95-100% of PII at rest
 - Pseudonymise direct identifiers in analytics
 - Maintain audit logs of data access
@@ -521,6 +648,7 @@ Healthcare and financial services organizations typically:
 - Conduct annual DPIA for high-risk processing
 
 NovaCred current state:
+
 - Encryption: 0%
 - Pseudonymisation: 0%
 - Audit logging: 0%
@@ -536,6 +664,7 @@ NovaCred current state:
 Based on supervisory authority enforcement actions and guidance documents:
 
 Expected baseline for credit decision systems:
+
 - Documented lawful basis and transparency notices
 - Elimination of unlawful special category processing
 - Explanation and human review for automated rejections
@@ -548,6 +677,9 @@ NovaCred gap: 100% (no baseline controls present)
 ---
 
 ## Part 11: Assessment Summary by Gap Category
+
+![GDPR Gap Analysis](reports/gdpr_gap_analysis.png)
+![Governance Gaps](reports/governance_gaps.png)
 
 ### Critical Findings (3)
 
@@ -588,6 +720,7 @@ NovaCred gap: 100% (no baseline controls present)
 ## Assessment Limitations and Caveats
 
 This assessment examined:
+
 - Personal data inventory and classification
 - Legal basis and transparency requirements
 - Technical controls for data protection
@@ -595,6 +728,7 @@ This assessment examined:
 - Organizational governance structures
 
 This assessment did NOT examine:
+
 - Information security beyond privacy requirements (e.g., DDoS protection)
 - Business continuity and disaster recovery (beyond data recovery for erasure)
 - Incident response plan testing
@@ -619,6 +753,7 @@ The assessment establishes the baseline against which progress will be measured.
 ---
 
 **Document Information:**
+
 - Assessment completion date: March 6, 2026
 - Prepared by: Paul Specht and Carolina Painvin, GDPR Officers
 - Classification: Internal - Legal Privilege
@@ -630,6 +765,8 @@ The assessment establishes the baseline against which progress will be measured.
 ## Governance Recommendationsa
 
 # Governance Recommendations
+
+![Remediation Roadmap](reports/remediation_roadmap.png)
 
 ## Overview
 
@@ -644,6 +781,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 9 GDPR prohibits processing of special category data except under narrow grounds. Health data inferred from spending patterns and sexual behaviour inferred from entertainment spending constitute special categories and cannot be processed without explicit legal basis.
 
 **Action Items:**
+
 - Remove healthcare, gambling, and adult entertainment spend fields from the application form immediately
 - Issue data handling notice to all staff instructing cessation of collection
 - Audit existing databases to tag records containing these fields as restricted pending deletion
@@ -662,6 +800,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 13 GDPR requires provision of specific information at the point of collection, including processing purposes, legal basis, recipient categories, retention period, and rights (access, erasure, portability, objection, right to explanation for automated decisions).
 
 **Action Items:**
+
 - Draft privacy notice addressing all Article 13 requirements
 - Include clear disclosure of automated credit scoring decision-making
 - Explain right to human review of automated rejections
@@ -683,6 +822,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 5(1)(f) requires integrity and confidentiality of personal data. Article 25 requires privacy by design. Article 32 mandates appropriate technical security measures. Storing SSN in plaintext violates all three.
 
 **Action Items:**
+
 - Configure data ingestion pipeline to apply HMAC-SHA256 pseudonymisation to SSN field
 - Apply same pseudonymisation to email field
 - Store the HMAC secret key in AWS KMS (or equivalent dedicated key management system)
@@ -708,6 +848,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 6 requires a lawful basis for processing. Article 7 specifies conditions for consent-based processing. Article 30 requires the controller to maintain records of processing activities including the legal basis.
 
 **Action Items:**
+
 - Identify primary lawful basis: Article 6(1)(b) (performance of contract) is appropriate for credit decision processing
 - Add checkbox to application: "I consent to NovaCred processing my personal data for credit assessment purposes in accordance with the privacy notice"
 - Maintain separate processing_basis field in database recording the basis for each applicant
@@ -728,6 +869,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** ECJ Breyer Decision (C-582/14) established that dynamic IP addresses are personal data under Article 4(1). Article 5(1)(c) mandates data minimisation. Storing full IP addresses exceeds the level of precision required for most operations.
 
 **Action Items:**
+
 - Configure application to mask final octet of all IPv4 addresses at ingestion
 - Restrict access to unmasked IP addresses to fraud detection team only
 - Implement 90-day retention limit for unmasked IPs in fraud detection logs
@@ -747,6 +889,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 30 GDPR requires controllers to maintain comprehensive records of all processing activities, including purposes, categories of data, recipients, retention periods, and security measures.
 
 **Action Items:**
+
 - Document all data collection points: application form, third-party data enrichment, payment processing, fraud detection systems
 - For each processing activity, record: purpose, data categories, recipient categories, retention schedule, security controls, legal basis
 - Include fields for DPA status (Data Protection Impact Assessment)
@@ -767,6 +910,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 17 grants data subjects the right to erasure in specified circumstances. Article 12(3) requires the controller to act on such requests without undue delay and within one month.
 
 **Action Items:**
+
 - Design API endpoint: /api/v1/subjects/{applicant_id}/erase
 - API must securely authenticate the data subject and verify the erasure basis
 - Erase all PII fields: full_name, email, ssn_pseudonym, ip_masked, date_of_birth, zip_region, gender
@@ -789,6 +933,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 5(1)(e) requires storage limitation: personal data kept no longer than necessary. Article 13(2)(a) requires informing data subjects of retention periods.
 
 **Action Items:**
+
 - Define retention schedules per data category:
   - Credit decision records: 5 years (standard financial dispute limitation period)
   - Application form PII (name, email, SSN): 90 days post-decision (appeals period)
@@ -816,6 +961,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 35 mandates DPIA for processing likely to result in high risk to rights and freedoms. Credit scoring systems processing special category data or making automated decisions are explicitly listed in guidance as requiring DPIA. Article 36 requires consultation with supervisory authority if residual risk remains high.
 
 **Action Items:**
+
 - Identify DPIA scope: the complete credit decision processing pipeline
 - Document data flows from application intake through decision notification
 - Identify processing risks: re-identification through quasi-identifiers, automated decision bias, special category data exposure, data breach impact
@@ -838,6 +984,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 22 GDPR grants rights related to automated decision-making: right to explanation of logic (Article 22(3)), right to human review, right to contest. Articles 13(2)(f) and 14(2)(g) require transparency disclosures about automated decision-making.
 
 **Action Items:**
+
 - Implement explainability layer identifying top three contributing factors to credit score
 - Generate decision letter template including: decision outcome, explanation of key factors, applicant's data used, right to contest, instructions for requesting human review
 - Send decision letters to all applicants (approved and rejected)
@@ -860,6 +1007,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 37 recommends (and in some sectors mandates) designation of a Data Protection Officer. Article 5(2) requires demonstrable accountability through governance structures.
 
 **Action Items:**
+
 - Designate or hire Data Protection Officer if not already appointed
 - Create Data Governance Committee with representation from Legal, Privacy, Data Engineering, Security, Business Units
 - Establish monthly governance review cadence
@@ -882,6 +1030,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 32 mandates encryption as state-of-the-art security measure. Article 5(1)(f) requires integrity and confidentiality.
 
 **Action Items:**
+
 - Implement AES-256 encryption for all databases containing personal data
 - Enable TLS 1.2+ for all data in transit
 - Manage encryption keys in AWS KMS or equivalent
@@ -905,6 +1054,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 28 requires a Data Processing Agreement between controller and any processor. The DPA must specify processing instructions, security obligations, and data subject rights procedures.
 
 **Action Items:**
+
 - Inventory all third-party vendors processing personal data
 - Obtain or negotiate Data Processing Agreements with each vendor
 - Ensure DPA covers: processing scope, security standards (Article 32), subprocessor management, data subject rights support, audit rights
@@ -925,6 +1075,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 25 requires privacy by design and privacy by default in all processing activities.
 
 **Action Items:**
+
 - Establish Privacy by Design guidelines for system development
 - Require DPIA for all new data processing activities before implementation
 - Build pseudonymisation and access controls into system architecture
@@ -946,6 +1097,7 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 **Legal Obligation:** Article 5(2) requires accountability demonstrated through regular compliance monitoring.
 
 **Action Items:**
+
 - Schedule annual third-party compliance audit covering GDPR and Data Protection Act requirements
 - Audit scope: data flows, security controls, retention policies, subject rights processes, vendor management
 - Review findings and remediate identified gaps
@@ -964,26 +1116,31 @@ This section synthesizes findings from the Privacy and Data Governance audit (no
 ### Key Performance Indicators
 
 Data Quality:
-- % of records with valid processing timestamps: target 100%
-- % of records with documented consent/basis: target 100%
-- % of special category data suppressed: target 100%
+
+- Percentage of records with valid processing timestamps: target 100%
+- Percentage of records with documented consent/basis: target 100%
+- Percentage of special category data suppressed: target 100%
 
 Privacy Protection:
-- % of personal data pseudonymised: target 100%
-- % of IP addresses masked: target 100%
-- % of plaintext sensitive fields: target 0%
+
+- Percentage of personal data pseudonymised: target 100%
+- Percentage of IP addresses masked: target 100%
+- Percentage of plaintext sensitive fields: target 0%
 
 Subject Rights:
+
 - Average response time to access requests: target under 14 days
 - Average response time to erasure requests: target under 14 days
 - Erasure request success rate: target 100%
 - Human review request response time: target under 14 days
 
 Vendor Management:
+
 - Percentage of processors with executed DPA: target 100%
 - Annual security review completion rate: target 100%
 
 Compliance:
+
 - Data retention policy compliance: target 100%
 - DPIA completion rate for new processing activities: target 100%
 - Staff training completion rate: target 100% annually
@@ -1002,14 +1159,14 @@ Annually: Third-party audit, supervisory authority consultation (if required), s
 
 ## Governance Accountability Matrix
 
-| Function | Responsibility | Accountability |
-|----------|----------------|-----------------|
-| Legal/Privacy | Develop policies, interpret GDPR, handle supervisory authority communications | Chief Legal Officer |
-| Data Governance | Maintain ROPA, oversee DPIA, monitor compliance metrics, manage retention policies | Chief Data Officer |
-| Data Engineering | Implement pseudonymisation, encryption, deletion automation, erasure API | VP Engineering |
-| Information Security | Manage encryption keys, audit security controls, manage vendor security reviews | Chief Security Officer |
-| Compliance/Audit | Conduct internal and third-party audits, report findings to board | Chief Compliance Officer / Audit Committee |
-| Business Units | Own data, complete privacy training, support subject rights requests, report data incidents | Individual business leaders |
+| Function             | Responsibility                                                                              | Accountability                             |
+| -------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Legal/Privacy        | Develop policies, interpret GDPR, handle supervisory authority communications               | Chief Legal Officer                        |
+| Data Governance      | Maintain ROPA, oversee DPIA, monitor compliance metrics, manage retention policies          | Chief Data Officer                         |
+| Data Engineering     | Implement pseudonymisation, encryption, deletion automation, erasure API                    | VP Engineering                             |
+| Information Security | Manage encryption keys, audit security controls, manage vendor security reviews             | Chief Security Officer                     |
+| Compliance/Audit     | Conduct internal and third-party audits, report findings to board                           | Chief Compliance Officer / Audit Committee |
+| Business Units       | Own data, complete privacy training, support subject rights requests, report data incidents | Individual business leaders                |
 
 ---
 
@@ -1020,8 +1177,3 @@ The governance recommendations outlined above address eleven identified complian
 The phased approach allows for immediate risk mitigation while building sustainable long-term governance infrastructure. Success requires sustained commitment from executive leadership, coordination across technical and business teams, and regular monitoring against defined metrics.
 
 All recommendations are aligned with specific GDPR articles and supported by technical and operational implementation details. Progress should be reviewed monthly by the Data Governance Committee with quarterly reporting to executive leadership.
-
-**Document Version:** 1.0
-**Date:** 2026-03-06
-**Prepared by:** GDPR Officers (Paul Specht, Carolina Painvin)
-**Approval Status:** Pending executive review and sign-off
