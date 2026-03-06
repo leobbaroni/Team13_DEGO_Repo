@@ -40,12 +40,12 @@ project-team13/
 
 ## Team Members
 
-| Name            | Role               |
-| --------------- | ------------------ |
-| Leonardo Baroni | Data Engineer      |
-| Arslan Mubarak  | Data Scientist     |
-| Paul            | Governance Officer |
-| Caro            | Product Lead       |
+| Name            | Role               | Email              |
+| --------------- | ------------------ | ------------------ |
+| Leonardo Baroni | Data Engineer      | [75728@novasbe.pt] |
+| Arslan Mubarak  | Data Scientist     | [70864@novasbe.pt] |
+| Paul            | Governance Officer | [72765@novasbe.pt] |
+| Caro            | Product Lead       | [70708@novasbe.pt] |
 
 ---
 
