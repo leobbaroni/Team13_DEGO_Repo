@@ -40,12 +40,12 @@ project-team13/
 
 ## Team Members
 
-| Name            | Role               | Email              |
-| --------------- | ------------------ | ------------------ |
-| Leonardo Baroni | Data Engineer      | [75728@novasbe.pt] |
-| Arslan Mubarak  | Data Scientist     | [70864@novasbe.pt] |
-| Paul            | Governance Officer | [72765@novasbe.pt] |
-| Caro            | Product Lead       | [70708@novasbe.pt] |
+| Name            | Role               | Email            |
+| --------------- | ------------------ | ---------------- |
+| Leonardo Baroni | Data Engineer      | 75728@novasbe.pt |
+| Arslan Mubarak  | Data Scientist     | 70864@novasbe.pt |
+| Paul            | Governance Officer | 72765@novasbe.pt |
+| Caro            | Product Lead       | 70708@novasbe.pt |
 
 ---
 
@@ -70,7 +70,7 @@ Full analysis provided in `notebooks/01-data-quality.ipynb`.
 
 ### Completeness & Consistency
 
-- Standardized Date of Birth formats across 161 records to ISO 8601.
+- Standardized Date of Birth across 5 detected formats (including DD/MM/YYYY and MM/DD/YYYY) to ISO 8601. When both day and month values are <= 12, the format is ambiguous; day-first was assumed as the majority convention.
 - Mapped heterogeneous gender values (M/F/Male/Female/empty) to standard Male/Female/Unknown.
 - Fixed mismatched JSON keys (`annual_salary` to `annual_income`) and coerced income columns to numeric format.
 - Identified 896 missing critical fields (IP Address, SSN, Processing Timestamp, Loan Purpose) and set them to "unknown".
@@ -89,14 +89,14 @@ Full analysis provided in `notebooks/01-data-quality.ipynb`.
 
 ### Summary Table
 
-| Dimension    | Issue Found                                      | Records Affected | Fix Strategy                             |
-| ------------ | ------------------------------------------------ | :--------------: | ---------------------------------------- |
-| Accuracy     | Duplicate IDs                                    |      4 -> 2      | Dropped duplicates using triage notes    |
-| Consistency  | Gender coded as M/F/Male/Female/empty            |       113        | Mapped to Male/Female/Unknown            |
-| Consistency  | Date of birth in 4 different formats             |       161        | Formatted to ISO 8601; derived age       |
-| Validity     | Negative values / Invalid bounds (DTI > 1.0)     |        5         | Set to NaN -> applied median imputation  |
-| Completeness | Missing PII & metrics (IP, SSN, Loan Purpose)    |    896 fields    | Nulls imputed with standard "unknown"    |
-| Governance   | PII columns: Name, Email, SSN, IP, Date of Birth |       500        | Tagged for downstream Privacy processing |
+| Dimension    | Issue Found                                                 | Records Affected | Fix Strategy                             |
+| ------------ | ----------------------------------------------------------- | :--------------: | ---------------------------------------- |
+| Accuracy     | Duplicate IDs                                               |      4 -> 2      | Dropped duplicates using triage notes    |
+| Consistency  | Gender coded as M/F/Male/Female/empty                       |       113        | Mapped to Male/Female/Unknown            |
+| Consistency  | Date of birth in 5 formats (DD/MM vs MM/DD ambiguity noted) |       161        | Formatted to ISO 8601; derived age       |
+| Validity     | Negative values / Invalid bounds (DTI > 1.0)                |        5         | Set to NaN -> applied median imputation  |
+| Completeness | Missing PII & metrics (IP, SSN, Loan Purpose)               |    896 fields    | Nulls imputed with standard "unknown"    |
+| Governance   | PII columns: Name, Email, SSN, IP, Date of Birth            |       500        | Tagged for downstream Privacy processing |
 
 ---
 
