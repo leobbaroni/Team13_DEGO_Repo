@@ -356,6 +356,21 @@ Article 9(2) provides ten grounds for lawful special category processing:
 - Any form of identifier obfuscation: Not implemented
 - Assessment: Absent
 
+### Pseudonymisation Techniques (Notebook 03 Demonstration)
+
+NovaCred should implement 8 techniques to reduce re-identification risk:
+
+| Technique | Field | Method | Legal Basis |
+|-----------|-------|--------|-------------|
+| HMAC-SHA256 (keyed) | SSN | Secret-key hash (resists rainbow tables) | Art. 5(1)(f), Art. 32(1)(a) |
+| HMAC-SHA256 (keyed) | Email | Keyed hash with salt | Art. 32(1)(a), ENISA baseline |
+| Age banding | Date of Birth | 10-year bands (e.g., 30-39) | Art. 5(1)(c), k-anonymity |
+| Last-octet masking | IP Address | Replace final octet with 0 | Art. 4(1), ECJ C-582/14 |
+| Prefix generalisation | ZIP Code | 3-digit prefix (12345 → 123XX) | Art. 5(1)(c), re-ID mitigation |
+| Suppression | Gender | Remove from pipeline | Art. 9, discrimination risk |
+| Suppression | Full Name | Remove entirely | Art. 5(1)(c) minimisation |
+| Suppression | Sensitive spend | Remove Healthcare/Gambling/Adult Ent. | Art. 9(1)(h) health data |
+
 **Access Control:**
 
 - Role-based access control: Not enforced
@@ -444,10 +459,17 @@ Current capability: Unknown
 
 Current capability: None
 
-- Notification of automated decision-making: No
-- Right to explanation: Not implemented
-- Right to human review: No process
-- Right to contest: No mechanism
+**Unmet Article 22 Obligations (Decision Transparency Triad):**
+
+| Obligation | Requirement | Current State | Impact |
+|-----------|-------------|--------------|--------|
+| Right to Explanation | Art. 22(3) | Only "algorithm_risk_score" (169 rejections) | Cannot understand decisions |
+| Right to Human Review | Art. 22(3) | Zero human review; 100% automated | No appeal path |
+| Right to Contest | Art. 22(3) | No contestation mechanism | Cannot dispute errors |
+| Notification | Art. 13(2)(f) | Not informed of automated processing | Unaware of automation |
+| Audit Trail | Art. 12, Art. 22 | No decision logs or model version records | Regulatory accountability impossible |
+
+**Finding:** Fails all three pillars of the Art. 13/14/22 "decision transparency triad."
 - Estimated capability: 0%
 
 **Overall Finding:** NovaCred has no documented or implemented capability to respond to the majority of data subject rights requests. The organization cannot demonstrate compliance with Articles 15-22.
@@ -752,6 +774,33 @@ The assessment establishes the baseline against which progress will be measured.
 
 ---
 
+## Part 12: EU AI Act Classification & Mandatory Requirements
+
+### Classification: HIGH-RISK AI System
+
+NovaCred's credit scoring system is classified as **HIGH-RISK** under **EU Regulation 2024/1689 (EU AI Act), Annex III, paragraph 5** ("systems intended to be used for credit scoring and credit rating of natural persons"). This classification is **non-negotiable** based on use case alone.
+
+### Mandatory Requirements (Articles 8-15)
+
+| Requirement | Article | Current State | Gap | Deadline |
+|-----------|---------|---------------|-----|----------|
+| Risk Assessment | Art. 9 | None documented | CRITICAL | 0-14 days |
+| Technical Documentation | Art. 11 | Missing | CRITICAL | Immediate |
+| Data & Model Governance | Art. 10 | Minimal | HIGH | 30-45 days |
+| Transparency & Explainability | Art. 13 | Not implemented | CRITICAL | Immediate |
+| Human Oversight | Art. 14 | Zero human review | CRITICAL | Immediate |
+| Logging & Audit Trail | Art. 12 | No decision logs | CRITICAL | Immediate |
+| Accuracy & Robustness | Art. 15 | DI < 0.8 confirmed (bias) | HIGH | 45-90 days |
+| Notified Body Assessment | Art. 43 | Not conducted | HIGH | 60-180 days |
+
+### Regulatory Exposure
+
+**AI Act penalties (Article 99):** EUR 30M or 6% global turnover (whichever higher)
+
+**Combined GDPR + AI Act:** Up to EUR 50M or 10% of turnover, plus civil liability for gender discrimination
+
+---
+
 **Document Information:**
 
 - Assessment completion date: March 6, 2026
@@ -762,7 +811,7 @@ The assessment establishes the baseline against which progress will be measured.
 
 ---
 
-## Governance Recommendationsa
+## Governance Recommendations
 
 # Governance Recommendations
 
