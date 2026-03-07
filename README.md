@@ -44,8 +44,8 @@ project-team13/
 | --------------- | ------------------ | ---------------- |
 | Leonardo Baroni | Data Engineer      | 75728@novasbe.pt |
 | Arslan Mubarak  | Data Scientist     | 70864@novasbe.pt |
-| Paul            | Product Lead       | 72765@novasbe.pt |
-| Caro            | Governance Officer      | 70708@novasbe.pt |
+| Paul Specht     | Product Lead       | 72765@novasbe.pt |
+| Carolina Painvin| Governance Officer | 70708@novasbe.pt |
 
 ---
 
