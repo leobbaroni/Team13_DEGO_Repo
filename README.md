@@ -126,13 +126,13 @@ independently by Fairlearn (DPR = 0.7667, DPD = 0.1539).
 
 | Age Group | Approval Rate |
 | --------- | ------------- |
-| 18-30     | 43.2%         |
-| 31-40     | 61.0%         |
-| 41-50     | 67.9%         |
-| 51-65     | 58.0%         |
+| 18-30     | 44.5%         |
+| 31-40     | 61.7%         |
+| 41-50     | 68.7%         |
+| 51-65     | 58.1%         |
 
-Age DI Ratio: A value of 0.6369 shows it is more severe than gender bias. Young applicants (18-30)
-are systematically penalised. Fairlearn DPD = 0.2464 confirms significant disparity.
+Age DI Ratio: A value of 0.6482 shows it is more severe than gender bias. Young applicants (18-30)
+are systematically penalised. Fairlearn DPD = 0.2416 confirms significant disparity.
 
 ### Finding 3 - ZIP Code Proxy Discrimination
 
@@ -150,9 +150,9 @@ would not eliminate discriminatory outcomes.
 
 | Group                | Approval Rate |
 | -------------------- | ------------- |
-| Female 18-30         | 31.7%         |
-| Male 41-50           | 76.3%         |
-| Interaction DI Ratio | 0.4162        |
+| Female 18-30         | 32.8%         |
+| Male 41-50           | 77.0%         |
+| Interaction DI Ratio | 0.4262        |
 
 Young female applicants face compounded discrimination. Males outperform females
 in every single age group without exception, ruling out coincidence and confirming
@@ -163,9 +163,9 @@ a structural gender penalty in the algorithm.
 | Finding      | Metric   | Value  | Threshold | Status      |
 | ------------ | -------- | ------ | --------- | ----------- |
 | Gender DI    | DI Ratio | 0.7667 | >= 0.8    | FAIL        |
-| Age DI       | DI Ratio | 0.6369 | >= 0.8    | FAIL        |
+| Age DI       | DI Ratio | 0.6482 | >= 0.8    | FAIL        |
 | ZIP Proxy    | p-value  | 0.0048 | > 0.05    | SIGNIFICANT |
-| Gender x Age | DI Ratio | 0.4162 | >= 0.8    | SEVERE      |
+| Gender x Age | DI Ratio | 0.4262 | >= 0.8    | SEVERE      |
 
 ---
 
